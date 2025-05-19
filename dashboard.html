@@ -1,0 +1,228 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elderly Care Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #f4f6f8;
+    }
+
+    header, footer {
+      padding: 10px;
+      background-color: #1e88e5;
+      color: white;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    aside {
+      background-color: #1565c0;
+      width: 220px;
+      padding: 20px;
+      color: white;
+    }
+
+    aside nav a {
+      display: block;
+      color: white;
+      text-decoration: none;
+      padding: 10px 0;
+    }
+
+    main {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    section {
+      margin-bottom: 30px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      margin-bottom: 10px;
+      color: #1565c0;
+    }
+
+    input, select, textarea, button {
+      padding: 10px;
+      margin-bottom: 10px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+
+    .card {
+      display: inline-block;
+      width: 23%;
+      margin-right: 1%;
+      background: #e3f2fd;
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    .card:last-child {
+      margin-right: 0;
+    }
+
+    footer {
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <aside>
+    <h2>Dashboard</h2>
+    <nav>
+      <a href="#home">Dashboard</a>
+      <a href="#session">Session Bookings</a>
+      <a href="#activity">Activities</a>
+      <a href="#elderly">Elderly Profiles</a>
+      <a href="#tutorials">Tutorials</a>
+      <a href="#notifications">Notifications</a>
+      <a href="#feedback">Feedback</a>
+    </nav>
+  </aside>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column;">
+    <header>
+      <div>Logo</div>
+      <div>User ▼ | Logout</div>
+    </header>
+
+    <main>
+      <section id="home">
+        <h2>Overview</h2>
+        <div class="card">Total Users: 120</div>
+        <div class="card">Upcoming Sessions: 5</div>
+        <div class="card">Number of Elderly: 30</div>
+        <div class="card">Pending Feedback: 3</div>
+      </section>
+
+      <section id="session">
+        <h2>Session Booking</h2>
+        <form>
+          <select><option>Select Elderly Person</option></select>
+          <select><option>Choose Activity</option></select>
+          <input type="datetime-local">
+          <button type="submit">Create Booking</button>
+        </form>
+        <h3>Previous Bookings</h3>
+        <table>
+          <tr><th>Name</th><th>Activity</th><th>Status</th></tr>
+          <tr><td>John Doe</td><td>Walk</td><td>Scheduled</td></tr>
+        </table>
+      </section>
+
+      <section id="activity">
+        <h2>Activity Management</h2>
+        <form>
+          <input type="text" placeholder="Title">
+          <textarea placeholder="Description"></textarea>
+          <input type="text" placeholder="Category">
+          <button type="submit">Add Activity</button>
+        </form>
+        <h3>Existing Activities</h3>
+        <table>
+          <tr><th>Title</th><th>Actions</th></tr>
+          <tr><td>Yoga</td><td>Edit | Delete</td></tr>
+        </table>
+      </section>
+
+      <section id="elderly">
+        <h2>Elderly Profiles</h2>
+        <form>
+          <input type="text" placeholder="Full Name">
+          <input type="number" placeholder="Age">
+          <input type="text" placeholder="Medical Condition">
+          <select><option>Orphanage</option></select>
+          <button type="submit">Add Elderly</button>
+        </form>
+        <table>
+          <tr><th>Name</th><th>Age</th><th>Actions</th></tr>
+          <tr><td>Mary</td><td>70</td><td>Edit | Delete</td></tr>
+        </table>
+      </section>
+
+      <section id="feedback">
+        <h2>Feedback</h2>
+        <form>
+          <select><option>Select Elderly</option></select>
+          <input type="number" min="1" max="5" placeholder="Rating (1-5)">
+          <textarea placeholder="Comments"></textarea>
+          <button type="submit">Submit Feedback</button>
+        </form>
+        <table>
+          <tr><th>Elderly</th><th>Rating</th><th>Comments</th></tr>
+          <tr><td>Mary</td><td>4</td><td>Very pleasant session</td></tr>
+        </table>
+      </section>
+
+      <section id="notifications">
+        <h2>Notifications</h2>
+        <ul>
+          <li>System updated - 2025-05-10 <button>Mark as read</button></li>
+        </ul>
+      </section>
+
+      <section id="tutorials">
+        <h2>Tutorials</h2>
+        <form>
+          <input type="text" placeholder="Title">
+          <input type="text" placeholder="Category">
+          <input type="url" placeholder="Link (YouTube/File)">
+          <button type="submit">Add Tutorial</button>
+        </form>
+        <table>
+          <tr><th>Title</th><th>Category</th><th>Link</th></tr>
+          <tr><td>Session Guide</td><td>Training</td><td><a href="#">Watch</a></td></tr>
+        </table>
+      </section>
+    </main>
+
+    <footer>
+      &copy; 2025 Elderly Care System | Contact: info@example.com
+    </footer>
+  </div>
+</body>
+
+</html>
+ 

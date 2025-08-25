@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elderly Care Dashboard – Advanced</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #6b7280;
+      --primary: #1e88e5;
+      --primary-600: #1565c0;
+      --accent: #10b981;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+      --border: #e5e7eb;
+    }
+    .dark {
+      --bg: #0b0f14;
+      --surface: #0f141b;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --primary: #4ea5ff;
+      --primary-600: #2a7ed6;
+      --accent: #34d399;
+      --danger: #f87171;
+      --warn: #fbbf24;
+      --border: #1f2937;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--text); display: flex; }
+
+    /* Sidebar */
+    aside { width: 260px; background: var(--primary-600); color: #fff; padding: 24px 16px; display: flex; flex-direction: column; }
+    .logo { font-weight: 800; letter-spacing: 0.3px; font-size: 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
+    .nav a { display: flex; align-items: center; gap: 10px; color: #e5f0ff; text-decoration: none; padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; transition: background .2s, transform .06s; }
+    .nav a:hover, .nav a.active { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+    .nav .icon { width: 20px; text-align: center; }
+
+    /* Main shell */
+    .shell { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    header { background: var(--primary); color: #fff; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; }
+    header .right { display: flex; align-items: center; gap: 10px; }
+    header button, .btn { cursor: pointer; border: 1px solid transparent; background: var(--surface); color: var(--text); padding: 8px 12px; border-radius: 10px; font-weight: 600; }
+    header .pill { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.25); }
+
+    main { padding: 20px; overflow: auto; }
+    section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 18px; box-shadow: 0 3px 10px rgba(0,0,0,0.04); }
+    section h2 { margin: 0 0 12px; font-size: 18px; }
+    section h3 { margin: 12px 0 8px; font-size: 16px; color: var(--muted); }
+
+    .cards { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 12px; }
+    .card { background: linear-gradient(180deg, #e3f2fd, #d9ecff); color: #0a3069; border-radius: 14px; padding: 16px; border: 1px solid #bfdcff; }
+    .dark .card { background: linear-gradient(180deg, #0f2238, #0b1b30); color: #cfe3ff; border-color: #163153; }
+    .card .kpi { font-size: 26px; font-weight: 800; margin-top: 6px; }
+
+    /* Forms */
+    form.grid { display: grid; grid-template-columns: repeat(2, minmax(160px, 1fr)); gap: 10px; }
+    label { font-size: 12px; color: var(--muted); }
+    input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+    textarea { min-height: 80px; resize: vertical; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn.primary { background: var(--primary); color: #fff; }
+    .btn.accent { background: var(--accent); color: #003b2a; }
+    .btn.danger { background: var(--danger); color: #fff; }
+    .btn.warn { background: var(--warn); color: #1f1300; }
+
+    /* Tables */
+    .table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { background: rgba(0,0,0,0.03); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    .row-actions { display: flex; gap: 8px; }
+
+    /* Toolbar */
+    .toolbar { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; flex-wrap: wrap; }
+    .toolbar input[type="search"] { max-width: 280px; }
+
+    /* Toast */
+    .toast { position: fixed; right: 16px; bottom: 16px; background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 10px 14px; border-radius: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); display: none; z-index: 9999; }
+
+    /* Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 9998; }
+    .modal { width: min(720px, 92vw); background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+
+    /* Responsive */
+    @media (max-width: 980px){ .cards { grid-template-columns: repeat(2, 1fr); } form.grid { grid-template-columns: 1fr; } aside { width: 74px; padding: 16px 10px; } .logo span { display:none; } .nav a span { display: none; } }
+    @media (max-width: 560px){ .cards { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <aside>
+    <div class="logo">🧓 <span>Elderly Care</span></div>
+    <nav class="nav">
+      <a href="#home" class="active"><span class="icon">🏠</span><span>Dashboard</span></a>
+      <a href="#sessions"><span class="icon">📅</span><span>Session Bookings</span></a>
+      <a href="#activities"><span class="icon">🎯</span><span>Activities</span></a>
+      <a href="#elderly"><span class="icon">👴</span><span>Elderly Profiles</span></a>
+      <a href="#feedback"><span class="icon">💬</span><span>Feedback</span></a>
+      <a href="#tutorials"><span class="icon">📚</span><span>Tutorials</span></a>
+      <a href="#notifications"><span class="icon">🔔</span><span>Notifications</span></a>
+      <a href="#settings"><span class="icon">⚙️</span><span>Settings</span></a>
+    </nav>
+  </aside>
+
+  <div class="shell">
+    <header>
+      <div><strong>Dashboard</strong></div>
+      <div class="right">
+        <button id="exportBtn" class="pill">⬇️ Export Data</button>
+        <label class="pill" style="display:flex; align-items:center; gap:8px; padding:6px 10px; cursor:pointer;">
+          ⬆️ Import Data
+          <input type="file" id="importFile" accept="application/json" style="display:none;" />
+        </label>
+        <button id="darkToggle" class="pill">🌙 Dark</button>
+        <span class="pill">User ▾</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- HOME / OVERVIEW -->
+      <section id="home">
+        <h2>Overview</h2>
+        <div class="cards">
+          <div class="card">
+            <div>Total Users</div>
+            <div id="kpi-users" class="kpi">0</div>
+          </div>
+          <div class="card">
+            <div>Upcoming Sessions</div>
+            <div id="kpi-sessions" class="kpi">0</div>
+          </div>
+          <div class="card">
+            <div>Number of Elderly</div>
+            <div id="kpi-elderly" class="kpi">0</div>
+          </div>
+          <div class="card">
+            <div>Pending Feedback</div>
+            <div id="kpi-feedback" class="kpi">0</div>
+          </div>
+        </div>
+        <canvas id="statsChart" height="110" style="margin-top:14px"></canvas>
+      </section>
+
+      <!-- SESSIONS -->
+      <section id="sessions">
+        <h2>Session Booking</h2>
+        <div class="toolbar">
+          <input id="sessionSearch" type="search" placeholder="Search by name or activity" />
+        </div>
+        <form id="sessionForm" class="grid">
+          <div>
+            <label>Elderly</label>
+            <select id="sessionElder"></select>
+          </div>
+          <div>
+            <label>Activity</label>
+            <select id="sessionActivity"></select>
+          </div>
+          <div>
+            <label>Date & Time</label>
+            <input id="sessionDate" type="datetime-local" required />
+          </div>
+          <div>
+            <label>Status</label>
+            <select id="sessionStatus">
+              <option>Scheduled</option>
+              <option>Completed</option>
+              <option>Cancelled</option>
+            </select>
+          </div>
+          <div class="actions">
+            <button class="btn primary" type="submit">Create Booking</button>
+            <button class="btn" type="reset">Reset</button>
+          </div>
+        </form>
+        <h3>Previous Bookings</h3>
+        <div class="table-wrap">
+          <table id="sessionsTable">
+            <thead>
+              <tr><th>Name</th><th>Activity</th><th>Date</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ACTIVITIES -->
+      <section id="activities">
+        <h2>Activity Management</h2>
+        <div class="toolbar">
+          <input id="activitySearch" type="search" placeholder="Search activity" />
+        </div>
+        <form id="activityForm" class="grid">
+          <div>
+            <label>Title</label>
+            <input id="activityTitle" type="text" placeholder="e.g. Yoga" required />
+          </div>
+          <div>
+            <label>Category</label>
+            <input id="activityCategory" type="text" placeholder="Wellness" required />
+          </div>
+          <div style="grid-column:1/-1">
+            <label>Description</label>
+            <textarea id="activityDesc" placeholder="Short description" required></textarea>
+          </div>
+          <div class="actions">
+            <button class="btn primary" type="submit">Add Activity</button>
+          </div>
+        </form>
+        <h3>Existing Activities</h3>
+        <div class="table-wrap">
+          <table id="activitiesTable">
+            <thead>
+              <tr><th>Title</th><th>Category</th><th>Description</th><th>Actions</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ELDERLY -->
+      <section id="elderly">
+        <h2>Elderly Profiles</h2>
+        <div class="toolbar">
+          <input id="elderlySearch" type="search" placeholder="Search name or condition" />
+        </div>
+        <form id="elderlyForm" class="grid">
+          <div>
+            <label>Full Name</label>
+            <input id="elderlyName" type="text" required />
+          </div>
+          <div>
+            <label>Age</label>
+            <input id="elderlyAge" type="number" min="55" max="120" required />
+          </div>
+          <div>
+            <label>Medical Condition</label>
+            <input id="elderlyCondition" type="text" placeholder="e.g. Arthritis" />
+          </div>
+          <div>
+            <label>Orphanage/Home</label>
+            <input id="elderlyHome" type="text" placeholder="e.g. Sunrise Care" required />
+          </div>
+          <div class="actions">
+            <button class="btn primary" type="submit">Add Elderly</button>
+          </div>
+        </form>
+        <div class="table-wrap">
+          <table id="elderlyTable">
+            <thead>
+              <tr><th>Name</th><th>Age</th><th>Condition</th><th>Home</th><th>Actions</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- FEEDBACK -->
+      <section id="feedback">
+        <h2>Feedback</h2>
+        <form id="feedbackForm" class="grid">
+          <div>
+            <label>Elderly</label>
+            <select id="feedbackElder"></select>
+          </div>
+          <div>
+            <label>Rating (1-5)</label>
+            <input id="feedbackRating" type="number" min="1" max="5" required />
+          </div>
+          <div style="grid-column:1/-1">
+            <label>Comments</label>
+            <textarea id="feedbackComments" required></textarea>
+          </div>
+          <div class="actions">
+            <button class="btn primary" type="submit">Submit Feedback</button>
+          </div>
+        </form>
+        <div class="table-wrap">
+          <table id="feedbackTable">
+            <thead>
+              <tr><th>Elderly</th><th>Rating</th><th>Comments</th><th>Date</th><th>Actions</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TUTORIALS -->
+      <section id="tutorials">
+        <h2>Tutorials</h2>
+        <form id="tutorialForm" class="grid">
+          <div>
+            <label>Title</label>
+            <input id="tutorialTitle" type="text" required />
+          </div>
+          <div>
+            <label>Category</label>
+            <input id="tutorialCategory" type="text" required />
+          </div>
+          <div style="grid-column:1/-1">
+            <label>Link (YouTube/File)</label>
+            <input id="tutorialLink" type="url" required />
+          </div>
+          <div class="actions">
+            <button class="btn primary" type="submit">Add Tutorial</button>
+          </div>
+        </form>
+        <div class="table-wrap">
+          <table id="tutorialsTable">
+            <thead>
+              <tr><th>Title</th><th>Category</th><th>Link</th><th>Actions</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- NOTIFICATIONS -->
+      <section id="notifications">
+        <h2>Notifications</h2>
+        <div class="actions" style="margin-bottom:8px">
+          <button id="addNotif" class="btn">Add Test Notification</button>
+          <button id="markAllRead" class="btn">Mark All Read</button>
+        </div>
+        <div class="table-wrap">
+          <table id="notificationsTable">
+            <thead>
+              <tr><th>Message</th><th>Date</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="settings">
+        <h2>Settings</h2>
+        <p class="muted">These preferences are stored locally for now (will move to database later).</n>
+        <div class="actions" style="margin-top:10px">
+          <button id="clearAll" class="btn danger">Clear Local Data</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Modal for generic edit -->
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px">
+        <strong id="modalTitle">Edit</strong>
+        <button id="modalClose" class="btn">✖</button>
+      </div>
+      <div id="modalBody" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Utilities ----------
+    const $ = (sel, el=document) => el.querySelector(sel);
+    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+
+    const toast = (msg) => {
+      const t = $('#toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 2200);
+    };
+
+    const modal = {
+      open(title, bodyHtml) {
+        $('#modalTitle').textContent = title;
+        $('#modalBody').innerHTML = bodyHtml;
+        $('#modalBackdrop').style.display = 'flex';
+      },
+      close(){ $('#modalBackdrop').style.display = 'none'; }
+    };
+
+    $('#modalClose').addEventListener('click', modal.close);
+    $('#modalBackdrop').addEventListener('click', (e)=>{ if(e.target.id==='modalBackdrop') modal.close(); });
+
+    // ---------- Persistence Layer (localStorage for now) ----------
+    const DB_KEY = 'elderlyCareDB.v1';
+    const nowISO = () => new Date().toISOString();
+    const uid = () => Math.random().toString(36).slice(2, 10);
+
+    const defaultData = {
+      users: [{ id:'admin', name:'Admin User', role:'admin' }],
+      elderly: [
+        { id: uid(), name:'Mary Smith', age: 70, condition:'Arthritis', home:'Sunrise Care' },
+        { id: uid(), name:'John Doe', age: 74, condition:'Diabetes', home:'Hope Home' }
+      ],
+      activities: [
+        { id: uid(), title:'Yoga', category:'Wellness', desc:'Gentle stretching and breathing.' },
+        { id: uid(), title:'Walk', category:'Outdoor', desc:'Short supervised walks.' }
+      ],
+      sessions: [
+        { id: uid(), elderId: null, elderName:'John Doe', activity:'Walk', datetime: new Date(Date.now()+86400000).toISOString(), status:'Scheduled' }
+      ],
+      feedback: [
+        { id: uid(), elderId: null, elderName:'Mary Smith', rating:4, comments:'Very pleasant session', createdAt: nowISO() }
+      ],
+      tutorials: [ { id: uid(), title:'Session Guide', category:'Training', link:"https://www.bergzichttraining.com/how-to-apply/" } ],
+      notifications: [ { id: uid(), message:'System updated', date: '2025-05-10', read:false } ]
+    };
+
+    const db = {
+      load(){
+        const raw = localStorage.getItem(DB_KEY);
+        if(!raw){
+          localStorage.setItem(DB_KEY, JSON.stringify(defaultData));
+          return structuredClone(defaultData);
+        }
+        try { return JSON.parse(raw); } catch { return structuredClone(defaultData); }
+      },
+      save(data){ localStorage.setItem(DB_KEY, JSON.stringify(data)); }
+    };
+
+    let state = db.load();
+
+    // ---------- Theme ----------
+    function applyTheme(){
+      const pref = localStorage.getItem('theme') || 'light';
+      document.body.classList.toggle('dark', pref==='dark');
+      $('#darkToggle').textContent = (pref==='dark') ? '☀️ Light' : '🌙 Dark';
+    }
+    applyTheme();
+    $('#darkToggle').addEventListener('click', ()=>{
+      const current = localStorage.getItem('theme') || 'light';
+      localStorage.setItem('theme', current==='light' ? 'dark' : 'light');
+      applyTheme();
+    });
+
+    // ---------- Navigation active state ----------
+    function setActiveNav(){
+      const hash = location.hash || '#home';
+      $$('.nav a').forEach(a=> a.classList.toggle('active', a.getAttribute('href')===hash));
+    }
+    window.addEventListener('hashchange', setActiveNav);
+    setActiveNav();
+
+    // ---------- Renderers ----------
+    function renderKpis(){
+      $('#kpi-users').textContent = state.users.length;
+      $('#kpi-elderly').textContent = state.elderly.length;
+      $('#kpi-sessions').textContent = state.sessions.filter(s=> s.status==='Scheduled').length;
+      $('#kpi-feedback').textContent = state.feedback.length;
+    }
+
+    let chart;
+    function renderChart(){
+      const ctx = $('#statsChart');
+      const data = [state.users.length, state.sessions.length, state.elderly.length, state.feedback.length];
+      if(chart){ chart.data.datasets[0].data = data; chart.update(); return; }
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: ['Users','Sessions','Elderly','Feedback'], datasets: [{ label:'System Stats', data }] },
+        options: { plugins: { legend: { display: false } } }
+      });
+    }
+
+    // Populate select inputs based on state
+    function fillSelects(){
+      const elderSel = $('#sessionElder');
+      elderSel.innerHTML = state.elderly.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+      const actSel = $('#sessionActivity');
+      actSel.innerHTML = state.activities.map(a=>`<option>${a.title}</option>`).join('');
+      const fbSel = $('#feedbackElder');
+      fbSel.innerHTML = state.elderly.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+    }
+
+    // Sessions table
+    function renderSessions(filter=''){
+      const tbody = $('#sessionsTable tbody');
+      const q = filter.toLowerCase();
+      tbody.innerHTML = state.sessions
+        .filter(s=> !q || (s.elderName?.toLowerCase().includes(q) || s.activity.toLowerCase().includes(q)))
+        .sort((a,b)=> new Date(b.datetime) - new Date(a.datetime))
+        .map(s=>`<tr>
+          <td>${s.elderName || '—'}</td>
+          <td>${s.activity}</td>
+          <td>${new Date(s.datetime).toLocaleString()}</td>
+          <td><span class="pill" style="background: ${s.status==='Completed'?'#dcfce7': s.status==='Cancelled'?'#fee2e2':'#e0f2fe'}; padding:4px 8px; border-radius:999px;">${s.status}</span></td>
+          <td class="row-actions">
+            <button class="btn" data-edit-session="${s.id}">Edit</button>
+            <button class="btn danger" data-del-session="${s.id}">Delete</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    // Activities table
+    function renderActivities(filter=''){
+      const tbody = $('#activitiesTable tbody');
+      const q = filter.toLowerCase();
+      tbody.innerHTML = state.activities
+        .filter(a=> !q || a.title.toLowerCase().includes(q) || a.category.toLowerCase().includes(q))
+        .map(a=>`<tr>
+          <td>${a.title}</td>
+          <td>${a.category}</td>
+          <td>${a.desc}</td>
+          <td class="row-actions">
+            <button class="btn" data-edit-activity="${a.id}">Edit</button>
+            <button class="btn danger" data-del-activity="${a.id}">Delete</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    // Elderly table
+    function renderElderly(filter=''){
+      const tbody = $('#elderlyTable tbody');
+      const q = filter.toLowerCase();
+      tbody.innerHTML = state.elderly
+        .filter(e=> !q || e.name.toLowerCase().includes(q) || (e.condition||'').toLowerCase().includes(q))
+        .map(e=>`<tr>
+          <td>${e.name}</td>
+          <td>${e.age}</td>
+          <td>${e.condition||'—'}</td>
+          <td>${e.home}</td>
+          <td class="row-actions">
+            <button class="btn" data-edit-elder="${e.id}">Edit</button>
+            <button class="btn danger" data-del-elder="${e.id}">Delete</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    // Feedback table
+    function renderFeedback(){
+      const tbody = $('#feedbackTable tbody');
+      tbody.innerHTML = state.feedback
+        .sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt))
+        .map(f=>`<tr>
+          <td>${f.elderName || '—'}</td>
+          <td>${f.rating}</td>
+          <td>${f.comments}</td>
+          <td>${new Date(f.createdAt).toLocaleString()}</td>
+          <td class="row-actions">
+            <button class="btn danger" data-del-feedback="${f.id}">Delete</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    // Tutorials table
+    function renderTutorials(){
+      const tbody = $('#tutorialsTable tbody');
+      tbody.innerHTML = state.tutorials.map(t=>`<tr>
+        <td>${t.title}</td>
+        <td>${t.category}</td>
+        <td><a href="${t.link}" target="_blank">Open</a></td>
+        <td class="row-actions">
+          <button class="btn" data-edit-tutorial="${t.id}">Edit</button>
+          <button class="btn danger" data-del-tutorial="${t.id}">Delete</button>
+        </td>
+      </tr>`).join('');
+    }
+
+    // Notifications table
+    function renderNotifications(){
+      const tbody = $('#notificationsTable tbody');
+      tbody.innerHTML = state.notifications
+        .sort((a,b)=> (a.read===b.read?0: a.read?1:-1))
+        .map(n=>`<tr>
+          <td>${n.message}</td>
+          <td>${n.date}</td>
+          <td>${n.read? 'Read' : 'Unread'}</td>
+          <td class="row-actions">
+            ${!n.read ? `<button class="btn accent" data-read-notif="${n.id}">Mark read</button>`:''}
+            <button class="btn danger" data-del-notif="${n.id}">Delete</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    function reRenderAll(){
+      renderKpis();
+      renderChart();
+      fillSelects();
+      renderSessions($('#sessionSearch').value||'');
+      renderActivities($('#activitySearch').value||'');
+      renderElderly($('#elderlySearch').value||'');
+      renderFeedback();
+      renderTutorials();
+      renderNotifications();
+      db.save(state);
+    }
+
+    // ---------- Form handlers ----------
+    // Sessions
+    $('#sessionForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const elderId = $('#sessionElder').value;
+      const elder = state.elderly.find(x=> x.id===elderId);
+      const activity = $('#sessionActivity').value;
+      const datetime = $('#sessionDate').value;
+      if(!datetime){ toast('Please choose a date and time'); return; }
+      state.sessions.push({ id: uid(), elderId, elderName: elder?.name, activity, datetime: new Date(datetime).toISOString(), status: $('#sessionStatus').value });
+      toast('Booking created');
+      e.target.reset();
+      reRenderAll();
+    });
+
+    $('#sessionsTable').addEventListener('click', (e)=>{
+      const id = e.target.getAttribute('data-del-session');
+      if(id){ state.sessions = state.sessions.filter(s=> s.id!==id); toast('Session deleted'); reRenderAll(); }
+      const editId = e.target.getAttribute('data-edit-session');
+      if(editId){
+        const s = state.sessions.find(x=> x.id===editId);
+        modal.open('Edit Session', `
+          <form id="editSessionForm" class="grid">
+            <div><label>Status</label>
+              <select name="status">
+                <option ${s.status==='Scheduled'?'selected':''}>Scheduled</option>
+                <option ${s.status==='Completed'?'selected':''}>Completed</option>
+                <option ${s.status==='Cancelled'?'selected':''}>Cancelled</option>
+              </select>
+            </div>
+            <div><label>Date & Time</label><input name="datetime" type="datetime-local" value="${new Date(s.datetime).toISOString().slice(0,16)}" /></div>
+            <div class="actions"><button class="btn primary">Save</button></div>
+          </form>`);
+        $('#editSessionForm').addEventListener('submit', (ev)=>{
+          ev.preventDefault();
+          const f = new FormData(ev.target);
+          s.status = f.get('status');
+          const dt = f.get('datetime');
+          if(dt) s.datetime = new Date(dt).toISOString();
+          modal.close(); toast('Session updated'); reRenderAll();
+        });
+      }
+    });
+
+    // Activities
+    $('#activityForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const title = $('#activityTitle').value.trim();
+      const category = $('#activityCategory').value.trim();
+      const desc = $('#activityDesc').value.trim();
+      if(!title || !category || !desc){ toast('Please fill in all activity fields'); return; }
+      state.activities.push({ id: uid(), title, category, desc });
+      toast('Activity added');
+      e.target.reset();
+      reRenderAll();
+    });
+
+    $('#activitiesTable').addEventListener('click', (e)=>{
+      const delId = e.target.getAttribute('data-del-activity');
+      if(delId){ state.activities = state.activities.filter(a=> a.id!==delId); toast('Activity deleted'); reRenderAll(); }
+      const editId = e.target.getAttribute('data-edit-activity');
+      if(editId){
+        const a = state.activities.find(x=> x.id===editId);
+        modal.open('Edit Activity', `
+          <form id="editActivityForm" class="grid">
+            <div><label>Title</label><input name="title" value="${a.title}" required/></div>
+            <div><label>Category</label><input name="category" value="${a.category}" required/></div>
+            <div style="grid-column:1/-1"><label>Description</label><textarea name="desc" required>${a.desc}</textarea></div>
+            <div class="actions"><button class="btn primary">Save</button></div>
+          </form>`);
+        $('#editActivityForm').addEventListener('submit', (ev)=>{
+          ev.preventDefault();
+          const f = new FormData(ev.target);
+          a.title = f.get('title'); a.category = f.get('category'); a.desc = f.get('desc');
+          modal.close(); toast('Activity updated'); reRenderAll();
+        });
+      }
+    });
+
+    // Elderly
+    $('#elderlyForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const name = $('#elderlyName').value.trim();
+      const age = +$('#elderlyAge').value;
+      if(!name || !Number.isFinite(age) || age < 55){ toast('Please enter a valid name and age (55+)'); return; }
+      state.elderly.push({ id: uid(), name, age, condition: $('#elderlyCondition').value.trim(), home: $('#elderlyHome').value.trim() || '—' });
+      toast('Elderly profile added'); e.target.reset(); reRenderAll();
+    });
+
+    $('#elderlyTable').addEventListener('click', (e)=>{
+      const delId = e.target.getAttribute('data-del-elder');
+      if(delId){ state.elderly = state.elderly.filter(x=> x.id!==delId); toast('Profile deleted'); reRenderAll(); }
+      const editId = e.target.getAttribute('data-edit-elder');
+      if(editId){
+        const el = state.elderly.find(x=> x.id===editId);
+        modal.open('Edit Elderly Profile', `
+          <form id="editElderForm" class="grid">
+            <div><label>Name</label><input name="name" value="${el.name}" required/></div>
+            <div><label>Age</label><input name="age" type="number" value="${el.age}" min="55" max="120" required/></div>
+            <div><label>Condition</label><input name="condition" value="${el.condition||''}" /></div>
+            <div><label>Home</label><input name="home" value="${el.home||''}" /></div>
+            <div class="actions"><button class="btn primary">Save</button></div>
+          </form>`);
+        $('#editElderForm').addEventListener('submit', (ev)=>{
+          ev.preventDefault();
+          const f = new FormData(ev.target);
+          el.name = f.get('name'); el.age = +f.get('age'); el.condition = f.get('condition'); el.home = f.get('home');
+          modal.close(); toast('Profile updated'); reRenderAll();
+        });
+      }
+    });
+
+    // Feedback
+    $('#feedbackForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const elderId = $('#feedbackElder').value;
+      const elder = state.elderly.find(x=> x.id===elderId);
+      const rating = +$('#feedbackRating').value;
+      if(rating<1 || rating>5){ toast('Rating must be 1-5'); return; }
+      state.feedback.push({ id: uid(), elderId, elderName: elder?.name, rating, comments: $('#feedbackComments').value.trim(), createdAt: nowISO() });
+      toast('Feedback submitted'); e.target.reset(); reRenderAll();
+    });
+
+    $('#feedbackTable').addEventListener('click', (e)=>{
+      const delId = e.target.getAttribute('data-del-feedback');
+      if(delId){ state.feedback = state.feedback.filter(x=> x.id!==delId); toast('Feedback deleted'); reRenderAll(); }
+    });
+
+    // Tutorials
+    $('#tutorialForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const title = $('#tutorialTitle').value.trim();
+      const category = $('#tutorialCategory').value.trim();
+      const link = $('#tutorialLink').value.trim();
+      try { new URL(link); } catch { toast('Please enter a valid URL'); return; }
+      state.tutorials.push({ id: uid(), title, category, link });
+      toast('Tutorial added'); e.target.reset(); reRenderAll();
+    });
+
+    $('#tutorialsTable').addEventListener('click', (e)=>{
+      const delId = e.target.getAttribute('data-del-tutorial');
+      if(delId){ state.tutorials = state.tutorials.filter(x=> x.id!==delId); toast('Tutorial deleted'); reRenderAll(); }
+      const editId = e.target.getAttribute('data-edit-tutorial');
+      if(editId){
+        const t = state.tutorials.find(x=> x.id===editId);
+        modal.open('Edit Tutorial', `
+          <form id="editTutForm" class="grid">
+            <div><label>Title</label><input name="title" value="${t.title}" required/></div>
+            <div><label>Category</label><input name="category" value="${t.category}" required/></div>
+            <div style="grid-column:1/-1"><label>Link</label><input name="link" value="${t.link}" type="url" required/></div>
+            <div class="actions"><button class="btn primary">Save</button></div>
+          </form>`);
+        $('#editTutForm').addEventListener('submit', (ev)=>{
+          ev.preventDefault(); const f = new FormData(ev.target);
+          t.title=f.get('title'); t.category=f.get('category'); t.link=f.get('link');
+          modal.close(); toast('Tutorial updated'); reRenderAll();
+        });
+      }
+    });
+
+    // Notifications
+    $('#addNotif').addEventListener('click', ()=>{
+      state.notifications.unshift({ id: uid(), message:'Test notification', date: new Date().toISOString().slice(0,10), read:false });
+      reRenderAll();
+    });
+    $('#markAllRead').addEventListener('click', ()=>{ state.notifications.forEach(n=> n.read=true); reRenderAll(); });
+    $('#notificationsTable').addEventListener('click', (e)=>{
+      const delId = e.target.getAttribute('data-del-notif');
+      if(delId){ state.notifications = state.notifications.filter(x=> x.id!==delId); toast('Notification deleted'); reRenderAll(); }
+      const readId = e.target.getAttribute('data-read-notif');
+      if(readId){ const n = state.notifications.find(x=> x.id===readId); if(n){ n.read=true; toast('Marked as read'); reRenderAll(); } }
+    });
+
+    // Search handlers
+    $('#sessionSearch').addEventListener('input', (e)=> renderSessions(e.target.value));
+    $('#activitySearch').addEventListener('input', (e)=> renderActivities(e.target.value));
+    $('#elderlySearch').addEventListener('input', (e)=> renderElderly(e.target.value));
+
+    // Export / Import JSON
+    $('#exportBtn').addEventListener('click', ()=>{
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'elderly-care-data.json';
+      a.click();
+    });
+    $('#importFile').addEventListener('change', async (e)=>{
+      const file = e.target.files?.[0];
+      if(!file) return;
+      const text = await file.text();
+      try { const data = JSON.parse(text); state = data; toast('Data imported'); reRenderAll(); }
+      catch { toast('Invalid JSON file'); }
+      e.target.value = '';
+    });
+
+    // Danger: clear all
+    $('#clearAll').addEventListener('click', ()=>{
+      if(confirm('This will clear all local data. Continue?')){
+        localStorage.removeItem(DB_KEY);
+        state = db.load();
+        reRenderAll();
+        toast('Local data cleared');
+      }
+    });
+
+    // Initial render
+    reRenderAll();
+  </script>
+</body>
+</html>

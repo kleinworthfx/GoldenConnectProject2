@@ -1,0 +1,13 @@
+GoldenConnect License Agreement
+===============================
+
+This software is provided "as is" without warranty of any kind.
+
+Copyright (c) 2025 GoldenConnect Team
+
+Permission is hereby granted to use this software for educational and 
+non-commercial purposes.
+
+For commercial use, please contact the development team.
+
+All rights reserved.

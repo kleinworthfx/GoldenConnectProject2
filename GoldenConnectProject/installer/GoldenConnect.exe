@@ -1,0 +1,4 @@
+@echo off 
+set GOLDENCONNECT_DB_PASSWORD=7Hesed7Joseph7 
+java -jar "C:\Users\Reece\OneDrive\Documents\NetBeansProjects\Test\GoldenConnectProject\target\goldenconnect-1.0.0.jar" 
+pause 
